@@ -3,6 +3,7 @@ import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import ModuleItem from './sidebar/ModuleItem';
 import DashboardContent from './dashboard/DashboardContent';
 import { modules } from '../data/modules';
+import { LogOut, Home } from 'lucide-react';
 
 export default function StoreManagementSystem() {
   const [openModules, setOpenModules] = useState({});
@@ -27,32 +28,21 @@ export default function StoreManagementSystem() {
   };
 
   const toggleModule = (moduleId) => {
-    // If the module is already open, close it and navigate to dashboard
-    if (openModules[moduleId]) {
-      setOpenModules(prev => ({
-        ...prev,
-        [moduleId]: false
-      }));
-      setActiveModule('dashboard');
-      navigate('/dashboard');
-      return;
-    }
-
-    // Otherwise, open the module
     setOpenModules(prev => ({
       ...prev,
-      [moduleId]: true
+      [moduleId]: !prev[moduleId]
     }));
-    setActiveModule(moduleId);
-    navigate(`/dashboard/${moduleId}`);
+    
+    if (moduleId !== activeModule) {
+      setActiveModule(moduleId);
+      navigate(`/dashboard/${moduleId}`);
+    }
   };
 
-  const moduleClickHandlers = {
-    dashboard: () => {
-      setActiveModule('dashboard');
-      navigate('/dashboard');
-    },
-    logout: handleLogout
+  const handleDashboard = () => {
+    setOpenModules({});
+    setActiveModule('dashboard');
+    navigate('/dashboard');
   };
 
   return (
@@ -64,21 +54,39 @@ export default function StoreManagementSystem() {
         </div>
         
         <div className="flex-1 overflow-y-auto p-4">
+          <button
+            onClick={handleDashboard}
+            className={`w-full flex items-center p-2.5 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors duration-200 mb-1 ${
+              activeModule === 'dashboard' ? 'bg-blue-50 text-blue-600 font-medium' : ''
+            }`}
+          >
+            <Home className={`w-5 h-5 mr-2.5 ${activeModule === 'dashboard' ? 'text-blue-600' : 'text-gray-500'}`} />
+            <span>Dashboard</span>
+          </button>
+
           {modules.map((module) => (
             <ModuleItem
               key={module.id}
               icon={module.icon}
               label={module.label}
               isOpen={openModules[module.id]}
-              onClick={moduleClickHandlers[module.id] || (() => toggleModule(module.id))}
+              onClick={() => toggleModule(module.id)}
               children={module.children}
               isActive={activeModule === module.id}
             />
           ))}
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 mt-4"
+          >
+            <LogOut className="w-5 h-5 mr-2.5" />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
       
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-gray-50">
         {activeModule === 'dashboard' ? (
           <DashboardContent user={user} />
         ) : (

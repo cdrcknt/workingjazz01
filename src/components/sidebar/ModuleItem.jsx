@@ -6,7 +6,8 @@ const ModuleItem = ({ icon: Icon, label, isOpen, onClick, children, isActive }) 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleChildClick = (child) => {
+  const handleChildClick = (child, event) => {
+    event.stopPropagation(); // Prevent triggering parent click
     if (child.path) {
       navigate(`/dashboard${child.path}`);
     }
@@ -37,7 +38,7 @@ const ModuleItem = ({ icon: Icon, label, isOpen, onClick, children, isActive }) 
           {children.map((child, index) => (
             <button
               key={index}
-              onClick={() => handleChildClick(child)}
+              onClick={(e) => handleChildClick(child, e)}
               className={`w-full flex items-center p-2 text-sm ${
                 isChildActive(child.path)
                   ? 'bg-blue-50 text-blue-600 font-medium'
