@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import StoreManagementSystem from './components/StoreManagementSystem';
 import ModuleContent from './modules/ModuleContent';
 import EmployeeRegistration from './components/modules/registration/EmployeeRegistration';
@@ -16,6 +17,9 @@ import AboutDevelopers from './components/modules/about/AboutDevelopers';
 import UpdateRecords from './components/modules/maintenance/UpdateRecords';
 import Archive from './components/modules/maintenance/Archive';
 import Backup from './components/modules/maintenance/Backup';
+import AddSupplier from './components/modules/supplier/AddSupplier';
+import ManageSuppliers from './components/modules/supplier/ManageSuppliers';
+import OrderHistory from './components/modules/supplier/OrderHistory';
 
 function App() {
   return (
@@ -23,6 +27,7 @@ function App() {
       <Route path="/" element={<LoginScreen />} />
       <Route path="/register" element={<RegisterScreen />} />
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+      <Route path="/reset-password" element={<ResetPasswordScreen />} />
       <Route path="/dashboard/*" element={<StoreManagementSystem />}>
         <Route path="registration" element={<ModuleContent moduleId="registration" />} />
         <Route path="registration/employee" element={<EmployeeRegistration />} />
@@ -37,6 +42,9 @@ function App() {
         <Route path="maintenance/update-records" element={<UpdateRecords />} />
         <Route path="maintenance/archive" element={<Archive />} />
         <Route path="maintenance/backup" element={<Backup />} />
+        <Route path="supplier/add" element={<AddSupplier />} />
+        <Route path="supplier/manage" element={<ManageSuppliers />} />
+        <Route path="supplier/history" element={<OrderHistory />} />
       </Route>
     </Routes>
   );

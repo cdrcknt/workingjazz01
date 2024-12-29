@@ -65,9 +65,11 @@ export const modules = [
     id: 'supplier',
     icon: Truck,
     label: 'Supplier',
+    path: '/supplier',
     children: [
-      { label: 'Supplier List', path: '/supplier/list' },
-      { label: 'Purchase Orders', path: '/supplier/orders' }
+      { label: 'Add Supplier', path: '/supplier/add' },
+      { label: 'Manage Suppliers', path: '/supplier/manage' },
+      { label: 'Order History', path: '/supplier/history' }
     ]
   },
   {
