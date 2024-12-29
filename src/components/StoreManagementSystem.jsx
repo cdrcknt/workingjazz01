@@ -1,0 +1,90 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import ModuleItem from './sidebar/ModuleItem';
+import DashboardContent from './dashboard/DashboardContent';
+import { modules } from '../data/modules';
+
+export default function StoreManagementSystem() {
+  const [openModules, setOpenModules] = useState({});
+  const [activeModule, setActiveModule] = useState('dashboard');
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      navigate('/');
+      return;
+    }
+    setUser(JSON.parse(storedUser));
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
+  const toggleModule = (moduleId) => {
+    // If the module is already open, close it and navigate to dashboard
+    if (openModules[moduleId]) {
+      setOpenModules(prev => ({
+        ...prev,
+        [moduleId]: false
+      }));
+      setActiveModule('dashboard');
+      navigate('/dashboard');
+      return;
+    }
+
+    // Otherwise, open the module
+    setOpenModules(prev => ({
+      ...prev,
+      [moduleId]: true
+    }));
+    setActiveModule(moduleId);
+    navigate(`/dashboard/${moduleId}`);
+  };
+
+  const moduleClickHandlers = {
+    dashboard: () => {
+      setActiveModule('dashboard');
+      navigate('/dashboard');
+    },
+    logout: handleLogout
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <div className="w-64 bg-white shadow-lg flex flex-col">
+        <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-blue-500">
+          <h1 className="text-xl font-bold text-white">Jazz Coffee</h1>
+          <p className="text-sm text-blue-100">Store Management System</p>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          {modules.map((module) => (
+            <ModuleItem
+              key={module.id}
+              icon={module.icon}
+              label={module.label}
+              isOpen={openModules[module.id]}
+              onClick={moduleClickHandlers[module.id] || (() => toggleModule(module.id))}
+              children={module.children}
+              isActive={activeModule === module.id}
+            />
+          ))}
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-auto">
+        {activeModule === 'dashboard' ? (
+          <DashboardContent user={user} />
+        ) : (
+          <Outlet context={{ user }} />
+        )}
+      </div>
+    </div>
+  );
+}
