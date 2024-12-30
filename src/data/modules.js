@@ -30,8 +30,7 @@ export const modules = [
     label: 'Order Management',
     children: [
       { label: 'New Order', path: '/order/new' },
-      { label: 'Order Queue', path: '/order/queue' },
-      { label: 'Order History', path: '/order/history' }
+      { label: 'Order Queue', path: '/order/queue' }
     ]
   },
   {

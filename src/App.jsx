@@ -24,6 +24,8 @@ import CreatePromotion from './components/modules/promotions/CreatePromotion';
 import DiscountApplication from './components/modules/promotions/DiscountApplication';
 import LoyaltyProgram from './components/modules/promotions/LoyaltyProgram';
 import ActivePromotions from './components/modules/promotions/ActivePromotions';
+import CustomerOrderEntry from './components/modules/order/CustomerOrderEntry';
+import OrderQueue from './components/modules/order/OrderQueue';
 
 function App() {
   return (
@@ -54,6 +56,9 @@ function App() {
         <Route path="promotions/discounts" element={<DiscountApplication />} />
         <Route path="promotions/loyalty" element={<LoyaltyProgram />} />
         <Route path="promotions/active" element={<ActivePromotions />} />
+        <Route path="order" element={<ModuleContent moduleId="order" />} />
+        <Route path="order/new" element={<CustomerOrderEntry />} />
+        <Route path="order/queue" element={<OrderQueue />} />
       </Route>
     </Routes>
   );
