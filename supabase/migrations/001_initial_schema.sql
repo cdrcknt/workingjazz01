@@ -13,14 +13,23 @@
   3. Supplier Management
     - suppliers (supplier information)
     - supplier_orders (order tracking)
-  4. Maintenance
+  4. Order Management
+    - order_types
+    - orders
+    - order_items
+    - customizations
+    - order_item_customizations
+  5. Maintenance
     - archived_products (product history)
     - data_backups (system backups)
-  5. Promotions and Loyalty
+  6. Promotions and Loyalty
     - promotions (promotional campaigns)
     - discount_types (types of discounts)
     - customer_loyalty (loyalty program members)
     - loyalty_rewards (available rewards)
+  7. Inventory Management
+    - stock_levels (current stock and thresholds)
+    - stock_movements (stock change audit trail)
   
   Security:
     - Row Level Security (RLS) enabled on all tables
@@ -58,6 +67,29 @@ CREATE TABLE IF NOT EXISTS products (
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now(),
     user_id uuid REFERENCES auth.users NOT NULL
+);
+
+-- Create inventory management tables
+CREATE TABLE IF NOT EXISTS stock_levels (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id uuid REFERENCES products(id) ON DELETE CASCADE,
+    current_stock integer NOT NULL DEFAULT 0,
+    threshold_level integer NOT NULL DEFAULT 10,
+    last_updated timestamptz DEFAULT now(),
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id uuid REFERENCES products(id) ON DELETE CASCADE,
+    movement_type text NOT NULL CHECK (movement_type IN ('add', 'remove')),
+    quantity integer NOT NULL,
+    previous_stock integer NOT NULL,
+    new_stock integer NOT NULL,
+    notes text,
+    created_at timestamptz DEFAULT now(),
+    created_by uuid REFERENCES auth.users(id)
 );
 
 -- Create time management tables
@@ -108,6 +140,59 @@ CREATE TABLE IF NOT EXISTS supplier_orders (
     payment_status text NOT NULL,
     delivery_method text NOT NULL,
     notes text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+-- Create order management tables
+CREATE TABLE IF NOT EXISTS order_types (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    description text,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_number text UNIQUE NOT NULL,
+    status text NOT NULL DEFAULT 'pending',
+    total_amount numeric NOT NULL DEFAULT 0,
+    notes text,
+    created_by uuid REFERENCES auth.users NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id uuid REFERENCES orders(id) ON DELETE CASCADE,
+    product_id uuid REFERENCES products(id),
+    quantity integer NOT NULL,
+    unit_price numeric NOT NULL,
+    subtotal numeric NOT NULL,
+    notes text,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS customizations (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    description text,
+    price numeric NOT NULL DEFAULT 0,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS order_item_customizations (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_item_id uuid REFERENCES order_items(id) ON DELETE CASCADE,
+    customization_id uuid REFERENCES customizations(id),
+    quantity integer NOT NULL DEFAULT 1,
+    price numeric NOT NULL,
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -186,10 +271,17 @@ CREATE TABLE IF NOT EXISTS loyalty_rewards (
 -- Enable RLS on all tables
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stock_levels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stock_movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE time_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplier_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_item_customizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE archived_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE data_backups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE promotions ENABLE ROW LEVEL SECURITY;
@@ -234,6 +326,43 @@ BEGIN
         CREATE POLICY "Users can delete their own products" ON products FOR DELETE TO authenticated USING (auth.uid() = user_id);
     END IF;
 
+    -- Stock Levels policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'stock_levels' AND policyname = 'Users can view stock levels') THEN
+        CREATE POLICY "Users can view stock levels" 
+        ON stock_levels FOR SELECT 
+        TO authenticated 
+        USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'stock_levels' AND policyname = 'Users can update stock levels') THEN
+        CREATE POLICY "Users can update stock levels" 
+        ON stock_levels FOR UPDATE 
+        TO authenticated 
+        USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'stock_levels' AND policyname = 'Users can insert stock levels') THEN
+        CREATE POLICY "Users can insert stock levels" 
+        ON stock_levels FOR INSERT 
+        TO authenticated 
+        WITH CHECK (true);
+    END IF;
+
+    -- Stock Movements policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'stock_movements' AND policyname = 'Users can view stock movements') THEN
+        CREATE POLICY "Users can view stock movements" 
+        ON stock_movements FOR SELECT 
+        TO authenticated 
+        USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'stock_movements' AND policyname = 'Users can insert stock movements') THEN
+        CREATE POLICY "Users can insert stock movements" 
+        ON stock_movements FOR INSERT 
+        TO authenticated 
+        WITH CHECK (created_by = auth.uid());
+    END IF;
+
     -- Suppliers policies
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'suppliers' AND policyname = 'Users can view suppliers') THEN
         CREATE POLICY "Users can view suppliers" ON suppliers FOR SELECT TO authenticated USING (true);
@@ -252,17 +381,37 @@ BEGIN
     END IF;
 
     -- Supplier orders policies
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can view orders') THEN
-        CREATE POLICY "Users can view orders" ON supplier_orders FOR SELECT TO authenticated USING (true);
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can insert orders') THEN
-        CREATE POLICY "Users can insert orders" ON supplier_orders FOR INSERT TO authenticated WITH CHECK (true);
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can update orders') THEN
-        CREATE POLICY "Users can update orders" ON supplier_orders FOR UPDATE TO authenticated USING (true);
-    END IF;
+IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can view orders') THEN
+    CREATE POLICY "Users can view orders" 
+    ON supplier_orders 
+    FOR SELECT 
+    TO authenticated 
+    USING (true);
+END IF;
+
+IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can insert orders') THEN
+    CREATE POLICY "Users can insert orders" 
+    ON supplier_orders 
+    FOR INSERT 
+    TO authenticated 
+    WITH CHECK (true);
+END IF;
+
+IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can update orders') THEN
+    CREATE POLICY "Users can update orders" 
+    ON supplier_orders 
+    FOR UPDATE 
+    TO authenticated 
+    USING (true);
+END IF;
+
+IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'supplier_orders' AND policyname = 'Users can delete orders') THEN
+    CREATE POLICY "Users can delete orders" 
+    ON supplier_orders 
+    FOR DELETE 
+    TO authenticated 
+    USING (true);
+END IF;
 
     -- Time entries policies
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'time_entries' AND policyname = 'Users can view time entries') THEN
@@ -363,6 +512,55 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'loyalty_rewards' AND policyname = 'Users can update loyalty rewards') THEN
         CREATE POLICY "Users can update loyalty rewards" ON loyalty_rewards FOR UPDATE TO authenticated USING (true);
     END IF;
+
+    -- Order types policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_types' AND policyname = 'Users can view order types') THEN
+        CREATE POLICY "Users can view order types" ON order_types FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_types' AND policyname = 'Users can manage order types') THEN
+        CREATE POLICY "Users can manage order types" ON order_types FOR ALL TO authenticated USING (true);
+    END IF;
+
+    -- Orders policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'orders' AND policyname = 'Users can view orders') THEN
+        CREATE POLICY "Users can view orders" ON orders FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'orders' AND policyname = 'Users can create orders') THEN
+        CREATE POLICY "Users can create orders" ON orders FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'orders' AND policyname = 'Users can update orders') THEN
+        CREATE POLICY "Users can update orders" ON orders FOR UPDATE TO authenticated USING (true);
+    END IF;
+
+    -- Order items policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_items' AND policyname = 'Users can view order items') THEN
+        CREATE POLICY "Users can view order items" ON order_items FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_items' AND policyname = 'Users can manage order items') THEN
+        CREATE POLICY "Users can manage order items" ON order_items FOR ALL TO authenticated USING (true);
+    END IF;
+
+    -- Customizations policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'customizations' AND policyname = 'Users can view customizations') THEN
+        CREATE POLICY "Users can view customizations" ON customizations FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'customizations' AND policyname = 'Users can manage customizations') THEN
+        CREATE POLICY "Users can manage customizations" ON customizations FOR ALL TO authenticated USING (true);
+    END IF;
+
+    -- Order item customizations policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_item_customizations' AND policyname = 'Users can view order item customizations') THEN
+        CREATE POLICY "Users can view order item customizations" ON order_item_customizations FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'order_item_customizations' AND policyname = 'Users can manage order item customizations') THEN
+        CREATE POLICY "Users can manage order item customizations" ON order_item_customizations FOR ALL TO authenticated USING (true);
+    END IF;
 END $$;
 
 -- Create update triggers for all tables
@@ -373,6 +571,11 @@ CREATE TRIGGER update_employees_updated_at
 
 CREATE TRIGGER update_products_updated_at
     BEFORE UPDATE ON products
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_stock_levels_updated_at
+    BEFORE UPDATE ON stock_levels
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -413,5 +616,30 @@ CREATE TRIGGER update_customer_loyalty_updated_at
 
 CREATE TRIGGER update_loyalty_rewards_updated_at
     BEFORE UPDATE ON loyalty_rewards
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_order_types_updated_at
+    BEFORE UPDATE ON order_types
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_orders_updated_at
+    BEFORE UPDATE ON orders
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_order_items_updated_at
+    BEFORE UPDATE ON order_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_customizations_updated_at
+    BEFORE UPDATE ON customizations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_order_item_customizations_updated_at
+    BEFORE UPDATE ON order_item_customizations
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

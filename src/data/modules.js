@@ -37,10 +37,8 @@ export const modules = [
     id: 'inventory',
     icon: Package,
     label: 'Inventory',
-    children: [
-      { label: 'Stock Levels', path: '/inventory/stock' },
-      { label: 'Reorder Items', path: '/inventory/reorder' }
-    ]
+    path: '/inventory',
+    component: 'InventoryDashboard'
   },
   {
     id: 'promotions',
