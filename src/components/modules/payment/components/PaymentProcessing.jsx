@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../../utils/supabaseClient';
 import { DollarSign, Calculator, Receipt, AlertCircle } from 'lucide-react';
-import DenominationInput from '../DenominationInput';
+import DenominationInput from './DenominationInput';
 import ReceiptModal from './ReceiptModal';
 
 const PaymentProcessing = () => {
