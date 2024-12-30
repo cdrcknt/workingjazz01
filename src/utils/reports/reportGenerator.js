@@ -1,8 +1,10 @@
-import jsPDF from 'jspdf';
+// Import dependencies
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-export const generatePDF = (data, title, dateRange) => {
+// PDF generation
+const generatePDF = (data, title, dateRange) => {
   const doc = new jsPDF();
   
   // Add header with Jazz Coffee branding
@@ -27,14 +29,16 @@ export const generatePDF = (data, title, dateRange) => {
   return doc;
 };
 
-export const generateExcel = (data, title) => {
+// Excel generation
+const generateExcel = (data, title) => {
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(data);
   XLSX.utils.book_append_sheet(wb, ws, title);
   return wb;
 };
 
-export const generateCSV = (data) => {
+// CSV generation
+const generateCSV = (data) => {
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(','),
@@ -42,3 +46,7 @@ export const generateCSV = (data) => {
   ].join('\n');
   return csvContent;
 };
+
+export {
+  generatePDF,
+  generateExce
