@@ -55,10 +55,8 @@ export const modules = [
     id: 'payment',
     icon: CreditCard,
     label: 'Payment',
-    children: [
-      { label: 'Process Payment', path: '/payment/process' },
-      { label: 'Transaction History', path: '/payment/history' }
-    ]
+    path: '/payment',
+    component: 'PaymentModule'
   },
   {
     id: 'supplier',
