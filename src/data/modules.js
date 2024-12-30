@@ -83,10 +83,8 @@ export const modules = [
     id: 'reports',
     icon: BarChart2,
     label: 'Reports',
-    children: [
-      { label: 'Sales Reports', path: '/reports/sales' },
-      { label: 'Inventory Reports', path: '/reports/inventory' }
-    ]
+    path: '/reports',
+    component: 'ReportsModule'
   },
   {
     id: 'help',

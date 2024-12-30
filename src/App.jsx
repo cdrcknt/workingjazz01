@@ -28,6 +28,13 @@ import CustomerOrderEntry from './components/modules/order/CustomerOrderEntry';
 import OrderQueue from './components/modules/order/OrderQueue';
 import InventoryDashboard from './components/modules/inventory/InventoryDashboard';
 import PaymentModule from './components/modules/payment/PaymentModule';
+import ReportsModule from './components/modules/reports/ReportsModule';
+import SalesReport from './components/modules/reports/SalesReport';
+import ProductReport from './components/modules/reports/ProductReport';
+import ServiceReport from './components/modules/reports/ServiceReport';
+import UserLogs from './components/modules/reports/UserLogs';
+import InventoryReport from './components/modules/reports/InventoryReport';
+import FinancialSummary from './components/modules/reports/FinancialSummary';
 
 function App() {
   return (
@@ -63,9 +70,14 @@ function App() {
         <Route path="order/queue" element={<OrderQueue />} />
         <Route path="inventory" element={<InventoryDashboard />} />
         <Route path="payment/*" element={<PaymentModule />} />
+        <Route path="reports" element={<ReportsModule />} />
+        <Route path="reports/sales" element={<SalesReport />} />
+        <Route path="reports/products" element={<ProductReport />} />
+        <Route path="reports/services" element={<ServiceReport />} />
+        <Route path="reports/user-logs" element={<UserLogs />} />
+        <Route path="reports/inventory" element={<InventoryReport />} />
+        <Route path="reports/financial" element={<FinancialSummary />} />
       </Route>
     </Routes>
   );
 }
-
-export default App;
