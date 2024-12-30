@@ -26,6 +26,7 @@ import LoyaltyProgram from './components/modules/promotions/LoyaltyProgram';
 import ActivePromotions from './components/modules/promotions/ActivePromotions';
 import CustomerOrderEntry from './components/modules/order/CustomerOrderEntry';
 import OrderQueue from './components/modules/order/OrderQueue';
+import InventoryDashboard from './components/modules/inventory/InventoryDashboard';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
         <Route path="order" element={<ModuleContent moduleId="order" />} />
         <Route path="order/new" element={<CustomerOrderEntry />} />
         <Route path="order/queue" element={<OrderQueue />} />
+        <Route path="inventory" element={<InventoryDashboard />} />
       </Route>
     </Routes>
   );
