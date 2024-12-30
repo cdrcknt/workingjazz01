@@ -16,6 +16,11 @@
   4. Maintenance
     - archived_products (product history)
     - data_backups (system backups)
+  5. Promotions and Loyalty
+    - promotions (promotional campaigns)
+    - discount_types (types of discounts)
+    - customer_loyalty (loyalty program members)
+    - loyalty_rewards (available rewards)
   
   Security:
     - Row Level Security (RLS) enabled on all tables
@@ -128,6 +133,56 @@ CREATE TABLE IF NOT EXISTS data_backups (
     metadata jsonb
 );
 
+-- Create promotions and loyalty tables
+CREATE TABLE IF NOT EXISTS promotions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    description text,
+    promotion_type text NOT NULL,
+    discount_type text NOT NULL,
+    discount_value numeric NOT NULL,
+    start_date timestamptz NOT NULL,
+    end_date timestamptz NOT NULL,
+    criteria jsonb DEFAULT '{}',
+    is_active boolean DEFAULT true,
+    is_archived boolean DEFAULT false,
+    created_by uuid REFERENCES auth.users NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS discount_types (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    description text,
+    discount_value numeric NOT NULL,
+    verification_required boolean DEFAULT true,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS customer_loyalty (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_name text NOT NULL,
+    contact_number text,
+    email text,
+    total_points numeric DEFAULT 0,
+    total_orders integer DEFAULT 0,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS loyalty_rewards (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    description text,
+    points_required integer NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
 -- Enable RLS on all tables
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
@@ -137,6 +192,10 @@ ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplier_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE archived_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE data_backups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promotions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE discount_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_loyalty ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loyalty_rewards ENABLE ROW LEVEL SECURITY;
 
 -- Create policies safely using DO blocks
 DO $$ 
@@ -248,6 +307,62 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'data_backups' AND policyname = 'Users can create backups') THEN
         CREATE POLICY "Users can create backups" ON data_backups FOR INSERT TO authenticated WITH CHECK (created_by = auth.uid());
     END IF;
+
+    -- Promotions policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'promotions' AND policyname = 'Users can view promotions') THEN
+        CREATE POLICY "Users can view promotions" ON promotions FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'promotions' AND policyname = 'Users can create promotions') THEN
+        CREATE POLICY "Users can create promotions" ON promotions FOR INSERT TO authenticated WITH CHECK (auth.uid() = created_by);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'promotions' AND policyname = 'Users can update own promotions') THEN
+        CREATE POLICY "Users can update own promotions" ON promotions FOR UPDATE TO authenticated USING (auth.uid() = created_by);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'promotions' AND policyname = 'Users can delete own promotions') THEN
+        CREATE POLICY "Users can delete own promotions" ON promotions FOR DELETE TO authenticated USING (auth.uid() = created_by);
+    END IF;
+
+    -- Discount types policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'discount_types' AND policyname = 'Users can view discount types') THEN
+        CREATE POLICY "Users can view discount types" ON discount_types FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'discount_types' AND policyname = 'Users can create discount types') THEN
+        CREATE POLICY "Users can create discount types" ON discount_types FOR INSERT TO authenticated WITH CHECK (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'discount_types' AND policyname = 'Users can update discount types') THEN
+        CREATE POLICY "Users can update discount types" ON discount_types FOR UPDATE TO authenticated USING (true);
+    END IF;
+
+    -- Customer loyalty policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'customer_loyalty' AND policyname = 'Users can view customer loyalty') THEN
+        CREATE POLICY "Users can view customer loyalty" ON customer_loyalty FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'customer_loyalty' AND policyname = 'Users can create customer loyalty') THEN
+        CREATE POLICY "Users can create customer loyalty" ON customer_loyalty FOR INSERT TO authenticated WITH CHECK (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'customer_loyalty' AND policyname = 'Users can update customer loyalty') THEN
+        CREATE POLICY "Users can update customer loyalty" ON customer_loyalty FOR UPDATE TO authenticated USING (true);
+    END IF;
+
+    -- Loyalty rewards policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'loyalty_rewards' AND policyname = 'Users can view loyalty rewards') THEN
+        CREATE POLICY "Users can view loyalty rewards" ON loyalty_rewards FOR SELECT TO authenticated USING (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'loyalty_rewards' AND policyname = 'Users can create loyalty rewards') THEN
+        CREATE POLICY "Users can create loyalty rewards" ON loyalty_rewards FOR INSERT TO authenticated WITH CHECK (true);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'loyalty_rewards' AND policyname = 'Users can update loyalty rewards') THEN
+        CREATE POLICY "Users can update loyalty rewards" ON loyalty_rewards FOR UPDATE TO authenticated USING (true);
+    END IF;
 END $$;
 
 -- Create update triggers for all tables
@@ -278,5 +393,25 @@ CREATE TRIGGER update_suppliers_updated_at
 
 CREATE TRIGGER update_supplier_orders_updated_at
     BEFORE UPDATE ON supplier_orders
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_promotions_updated_at
+    BEFORE UPDATE ON promotions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_discount_types_updated_at
+    BEFORE UPDATE ON discount_types
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_customer_loyalty_updated_at
+    BEFORE UPDATE ON customer_loyalty
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_loyalty_rewards_updated_at
+    BEFORE UPDATE ON loyalty_rewards
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
