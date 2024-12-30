@@ -20,6 +20,10 @@ import Backup from './components/modules/maintenance/Backup';
 import AddSupplier from './components/modules/supplier/AddSupplier';
 import ManageSuppliers from './components/modules/supplier/ManageSuppliers';
 import OrderHistory from './components/modules/supplier/OrderHistory';
+import CreatePromotion from './components/modules/promotions/CreatePromotion';
+import DiscountApplication from './components/modules/promotions/DiscountApplication';
+import LoyaltyProgram from './components/modules/promotions/LoyaltyProgram';
+import ActivePromotions from './components/modules/promotions/ActivePromotions';
 
 function App() {
   return (
@@ -45,6 +49,11 @@ function App() {
         <Route path="supplier/add" element={<AddSupplier />} />
         <Route path="supplier/manage" element={<ManageSuppliers />} />
         <Route path="supplier/history" element={<OrderHistory />} />
+        <Route path="promotions" element={<ModuleContent moduleId="promotions" />} />
+        <Route path="promotions/create" element={<CreatePromotion />} />
+        <Route path="promotions/discounts" element={<DiscountApplication />} />
+        <Route path="promotions/loyalty" element={<LoyaltyProgram />} />
+        <Route path="promotions/active" element={<ActivePromotions />} />
       </Route>
     </Routes>
   );

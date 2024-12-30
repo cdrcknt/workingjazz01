@@ -46,9 +46,11 @@ export const modules = [
   {
     id: 'promotions',
     icon: Tag,
-    label: 'Promotions',
+    label: 'Promotions and Discounts',
     children: [
       { label: 'Create Promotion', path: '/promotions/create' },
+      { label: 'Discount Application', path: '/promotions/discounts' },
+      { label: 'Loyalty Program', path: '/promotions/loyalty' },
       { label: 'Active Promotions', path: '/promotions/active' }
     ]
   },
