@@ -30,6 +30,15 @@
   7. Inventory Management
     - stock_levels (current stock and thresholds)
     - stock_movements (stock change audit trail)
+  8. Payment System
+    - transactions (payment transaction details)
+    - transaction_denominations (cash denominations tracking)
+    - daily_reconciliations (cash reconciliation records)
+  9. Reports Module
+    - report_templates (report configurations)
+    - generated_reports (report data and metadata)
+    - user_logs (user activity tracking)
+    - report_downloads (report download history)
   
   Security:
     - Row Level Security (RLS) enabled on all tables
@@ -268,6 +277,82 @@ CREATE TABLE IF NOT EXISTS loyalty_rewards (
     updated_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS transactions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id uuid REFERENCES orders(id) NOT NULL,
+    total_amount numeric NOT NULL,
+    discount_amount numeric DEFAULT 0,
+    discount_type text,
+    promotion_id uuid REFERENCES promotions(id),
+    final_amount numeric NOT NULL,
+    amount_tendered numeric NOT NULL,
+    change_amount numeric NOT NULL,
+    payment_status text NOT NULL DEFAULT 'pending',
+    created_by uuid REFERENCES auth.users(id) NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS transaction_denominations (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    transaction_id uuid REFERENCES transactions(id) NOT NULL,
+    denomination numeric NOT NULL,
+    quantity integer NOT NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS daily_reconciliations (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    reconciliation_date date NOT NULL,
+    expected_amount numeric NOT NULL,
+    actual_amount numeric NOT NULL,
+    discrepancy_amount numeric DEFAULT 0,
+    status text NOT NULL DEFAULT 'pending',
+    notes text,
+    created_by uuid REFERENCES auth.users(id) NOT NULL,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS report_templates (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    type text NOT NULL,
+    template_data jsonb NOT NULL,
+    is_active boolean DEFAULT true,
+    created_at timestamptz DEFAULT now(),
+    updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS generated_reports (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id uuid REFERENCES report_templates(id),
+    report_type text NOT NULL,
+    parameters jsonb NOT NULL,
+    report_data jsonb NOT NULL,
+    generated_by uuid REFERENCES auth.users(id),
+    start_date timestamptz,
+    end_date timestamptz,
+    created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_logs (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid REFERENCES auth.users(id),
+    action text NOT NULL,
+    module text NOT NULL,
+    details jsonb,
+    ip_address text,
+    created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS report_downloads (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id uuid REFERENCES generated_reports(id),
+    downloaded_by uuid REFERENCES auth.users(id),
+    download_date timestamptz DEFAULT now()
+);
+
 -- Enable RLS on all tables
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
@@ -288,6 +373,13 @@ ALTER TABLE promotions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE discount_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customer_loyalty ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loyalty_rewards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transaction_denominations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_reconciliations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE report_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE generated_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE report_downloads ENABLE ROW LEVEL SECURITY;
 
 -- Create policies safely using DO blocks
 DO $$ 
@@ -563,6 +655,174 @@ END IF;
     END IF;
 END $$;
 
+-- Create auth schema if it doesn't exist
+CREATE SCHEMA IF NOT EXISTS auth;
+
+-- Create users table in auth schema if it doesn't exist
+CREATE TABLE IF NOT EXISTS auth.users (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    email text UNIQUE NOT NULL,
+    created_at timestamptz DEFAULT now()
+);
+
+-- Consolidate all policies into a single DO block for atomic execution
+DO $$ 
+BEGIN
+    -- Transactions policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transactions' AND policyname = 'Users can view transactions') THEN
+        CREATE POLICY "Users can view transactions" 
+            ON transactions FOR SELECT 
+            TO authenticated 
+            USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transactions' AND policyname = 'Users can create transactions') THEN
+        CREATE POLICY "Users can create transactions" 
+            ON transactions FOR INSERT 
+            TO authenticated 
+            WITH CHECK (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transactions' AND policyname = 'Users can delete transactions') THEN
+        CREATE POLICY "Users can delete transactions" 
+            ON transactions FOR DELETE 
+            TO authenticated 
+            USING (auth.uid() = created_by);
+    END IF;
+
+    -- Transaction denominations policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transaction_denominations' AND policyname = 'Users can view transaction denominations') THEN
+        CREATE POLICY "Users can view transaction denominations" 
+            ON transaction_denominations FOR SELECT 
+            TO authenticated 
+            USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transaction_denominations' AND policyname = 'Users can create transaction denominations') THEN
+        CREATE POLICY "Users can create transaction denominations" 
+            ON transaction_denominations FOR INSERT 
+            TO authenticated 
+            WITH CHECK (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'transaction_denominations' AND policyname = 'Users can delete transaction denominations') THEN
+        CREATE POLICY "Users can delete transaction denominations" 
+            ON transaction_denominations FOR DELETE 
+            TO authenticated 
+            USING (true);
+    END IF;
+
+    -- Daily reconciliations policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_reconciliations' AND policyname = 'Users can view daily reconciliations') THEN
+        CREATE POLICY "Users can view daily reconciliations" 
+            ON daily_reconciliations FOR SELECT 
+            TO authenticated 
+            USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_reconciliations' AND policyname = 'Users can create daily reconciliations') THEN
+        CREATE POLICY "Users can create daily reconciliations" 
+            ON daily_reconciliations FOR INSERT 
+            TO authenticated 
+            WITH CHECK (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_reconciliations' AND policyname = 'Users can update daily reconciliations') THEN
+        CREATE POLICY "Users can update daily reconciliations" 
+            ON daily_reconciliations FOR UPDATE 
+            TO authenticated 
+            USING (auth.uid() = created_by);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'daily_reconciliations' AND policyname = 'Users can delete daily reconciliations') THEN
+        CREATE POLICY "Users can delete daily reconciliations" 
+            ON daily_reconciliations FOR DELETE 
+            TO authenticated 
+            USING (auth.uid() = created_by);
+    END IF;
+
+    -- Report Templates policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'report_templates' AND policyname = 'Users can view report templates') THEN
+        CREATE POLICY "Users can view report templates"
+            ON report_templates FOR SELECT
+            TO authenticated
+            USING (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'report_templates' AND policyname = 'Users can delete report templates') THEN
+        CREATE POLICY "Users can delete report templates"
+            ON report_templates FOR DELETE
+            TO authenticated
+            USING (true);
+    END IF;
+
+    -- Generated Reports policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'generated_reports' AND policyname = 'Users can view their generated reports') THEN
+        CREATE POLICY "Users can view their generated reports"
+            ON generated_reports FOR SELECT
+            TO authenticated
+            USING (generated_by = auth.uid());
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'generated_reports' AND policyname = 'Users can create reports') THEN
+        CREATE POLICY "Users can create reports"
+            ON generated_reports FOR INSERT
+            TO authenticated
+            WITH CHECK (generated_by = auth.uid());
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'generated_reports' AND policyname = 'Users can delete their reports') THEN
+        CREATE POLICY "Users can delete their reports"
+            ON generated_reports FOR DELETE
+            TO authenticated
+            USING (generated_by = auth.uid());
+    END IF;
+
+    -- User Logs policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'user_logs' AND policyname = 'Users can view their own logs') THEN
+        CREATE POLICY "Users can view their own logs"
+            ON user_logs FOR SELECT
+            TO authenticated
+            USING (user_id = auth.uid());
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'user_logs' AND policyname = 'System can create logs') THEN
+        CREATE POLICY "System can create logs"
+            ON user_logs FOR INSERT
+            TO authenticated
+            WITH CHECK (true);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'user_logs' AND policyname = 'Users can delete their own logs') THEN
+        CREATE POLICY "Users can delete their own logs"
+            ON user_logs FOR DELETE
+            TO authenticated
+            USING (user_id = auth.uid());
+    END IF;
+
+    -- Report Downloads policies
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'report_downloads' AND policyname = 'Users can view their downloads') THEN
+        CREATE POLICY "Users can view their downloads"
+            ON report_downloads FOR SELECT
+            TO authenticated
+            USING (downloaded_by = auth.uid());
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'report_downloads' AND policyname = 'Users can record downloads') THEN
+        CREATE POLICY "Users can record downloads"
+            ON report_downloads FOR INSERT
+            TO authenticated
+            WITH CHECK (downloaded_by = auth.uid());
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'report_downloads' AND policyname = 'Users can delete their downloads') THEN
+        CREATE POLICY "Users can delete their downloads"
+            ON report_downloads FOR DELETE
+            TO authenticated
+            USING (downloaded_by = auth.uid());
+    END IF;
+END $$;
+
 -- Create update triggers for all tables
 CREATE TRIGGER update_employees_updated_at
     BEFORE UPDATE ON employees
@@ -641,5 +901,35 @@ CREATE TRIGGER update_customizations_updated_at
 
 CREATE TRIGGER update_order_item_customizations_updated_at
     BEFORE UPDATE ON order_item_customizations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_transactions_updated_at
+    BEFORE UPDATE ON transactions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_daily_reconciliations_updated_at
+    BEFORE UPDATE ON daily_reconciliations
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_report_templates_updated_at
+    BEFORE UPDATE ON report_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_generated_reports_updated_at
+    BEFORE UPDATE ON generated_reports
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_logs_updated_at
+    BEFORE UPDATE ON user_logs
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_report_downloads_updated_at
+    BEFORE UPDATE ON report_downloads
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
