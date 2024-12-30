@@ -5,6 +5,16 @@ import DashboardContent from './dashboard/DashboardContent';
 import { modules } from '../data/modules';
 import { LogOut, Home } from 'lucide-react';
 
+const EMPLOYEE_MODULES = [
+  'dashboard',
+  'order',
+  'inventory',
+  'promotions',
+  'payment',
+  'help',
+  'about'
+];
+
 export default function StoreManagementSystem() {
   const [openModules, setOpenModules] = useState({});
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -45,6 +55,11 @@ export default function StoreManagementSystem() {
     navigate('/dashboard');
   };
 
+  // Filter modules based on user role
+  const filteredModules = modules.filter(module => 
+    user?.role === 'admin' || EMPLOYEE_MODULES.includes(module.id)
+  );
+
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="w-64 bg-white shadow-lg flex flex-col">
@@ -64,7 +79,7 @@ export default function StoreManagementSystem() {
             <span>Dashboard</span>
           </button>
 
-          {modules.map((module) => (
+          {filteredModules.map((module) => (
             <ModuleItem
               key={module.id}
               icon={module.icon}

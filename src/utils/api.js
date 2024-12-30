@@ -9,12 +9,17 @@ export const loginUser = async (credentials) => {
 
     if (error) throw new Error(error.message);
     
+    // Verify user role matches requested role
+    if (data.user.user_metadata.role !== credentials.role) {
+      throw new Error(`Invalid login. This account is not registered as ${credentials.role}`);
+    }
+    
     return {
       token: data.session.access_token,
       user: {
         id: data.user.id,
         email: data.user.email,
-        role: data.user.user_metadata.role || 'admin'
+        role: data.user.user_metadata.role
       }
     };
   } catch (error) {

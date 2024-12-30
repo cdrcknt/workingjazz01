@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User, Mail, Lock, Calendar, UserCircle } from 'lucide-react';
 import { supabase } from '../../../utils/supabaseClient';
-import { createRecord } from '../../../utils/databaseHelpers';
 
 const EMPLOYEE_ROLES = [
   'Barista',
   'Cashier',
-  'Manager',
-  'Supervisor',
   'Kitchen Staff'
 ];
 
@@ -21,15 +18,6 @@ const EmployeeRegistration = () => {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    };
-    getUser();
-  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -40,18 +28,36 @@ const EmployeeRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      setMessage({ type: 'error', text: 'Please sign in to register employees' });
-      return;
-    }
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      await createRecord('employees', {
-        ...formData,
-        user_id: currentUser.id
+      // First, create auth user with employee role
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            role: 'employee'
+          }
+        }
       });
+
+      if (authError) throw authError;
+
+      // Then create employee record
+      const { error: employeeError } = await supabase
+        .from('employees')
+        .insert([{
+          email: formData.email,
+          role: formData.role,
+          name: formData.name,
+          birth_date: formData.birth_date,
+          user_id: authData.user.id
+        }]);
+
+      if (employeeError) throw employeeError;
+
       setMessage({
         type: 'success',
         text: 'Employee registered successfully!'
@@ -77,7 +83,7 @@ const EmployeeRegistration = () => {
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl p-6 mb-6">
         <h3 className="text-xl font-semibold text-indigo-800 mb-2">Employee Registration</h3>
-        <p className="text-indigo-600">Add new employees to the system</p>
+        <p className="text-indigo-600">Register new employee accounts</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

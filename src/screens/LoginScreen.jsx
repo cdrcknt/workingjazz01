@@ -10,6 +10,7 @@ import { setAuth } from '../utils/auth';
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('admin');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +30,7 @@ const LoginScreen = () => {
     setSuccess('');
 
     try {
-      const data = await loginUser({ email, password, role: 'admin' });
+      const data = await loginUser({ email, password, role });
       setAuth(data.token, data.user);
       navigate('/dashboard');
     } catch (error) {
@@ -88,6 +89,36 @@ const LoginScreen = () => {
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Login As
+            </label>
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={() => setRole('admin')}
+                className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
+                  role === 'admin'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('employee')}
+                className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
+                  role === 'employee'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                Employee
+              </button>
+            </div>
+          </div>
+
           {error && (
             <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium animate-shake">
               {error}
@@ -100,13 +131,15 @@ const LoginScreen = () => {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </AuthButton>
 
-            <AuthButton
-              type="button"
-              variant="secondary"
-              onClick={() => navigate('/register')}
-            >
-              Create Admin Account
-            </AuthButton>
+            {role === 'admin' && (
+              <AuthButton
+                type="button"
+                variant="secondary"
+                onClick={() => navigate('/register')}
+              >
+                Create Admin Account
+              </AuthButton>
+            )}
           </div>
         </form>
 
