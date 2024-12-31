@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Coffee, Users, Package, Clock, Calendar, DollarSign, 
-  Tag, ShoppingBag, Truck, BarChart2, Settings, CreditCard
+  Tag, ShoppingBag, Truck, BarChart2, Settings, CreditCard,
+  FileText, Info, HelpCircle, Archive, Database
 } from 'lucide-react';
 
 const UserManual = () => {
@@ -10,11 +11,12 @@ const UserManual = () => {
       title: 'Dashboard',
       icon: Coffee,
       content: [
-        'View key metrics and statistics',
+        'View key business metrics and statistics',
         'Monitor daily sales and revenue',
         'Track active staff and inventory status',
         'Access quick actions for common tasks',
-        'View recent orders and their status'
+        'View recent orders and their status',
+        'Monitor low stock alerts'
       ]
     },
     {
@@ -22,9 +24,10 @@ const UserManual = () => {
       icon: Users,
       content: [
         'Register new employees with complete information',
-        'Add new products to the system',
+        'Add new products to the inventory system',
         'Set product prices and categories',
-        'Manage product details and availability'
+        'Manage product details and availability',
+        'Upload product images and descriptions'
       ]
     },
     {
@@ -36,8 +39,9 @@ const UserManual = () => {
           content: [
             'View and manage employee information',
             'Update employee details and roles',
-            'Track employee performance',
-            'Manage access permissions'
+            'Track employee performance metrics',
+            'Manage access permissions and security',
+            'View employment history and documentation'
           ]
         },
         {
@@ -46,7 +50,8 @@ const UserManual = () => {
             'Record employee clock-in/out times',
             'Monitor work hours and attendance',
             'Generate timesheet reports',
-            'Track overtime and breaks'
+            'Track overtime and breaks',
+            'Manage leave requests and approvals'
           ]
         },
         {
@@ -55,20 +60,10 @@ const UserManual = () => {
             'Create and manage employee schedules',
             'Assign shifts and duties',
             'Handle time-off requests',
-            'View schedule conflicts'
+            'View schedule conflicts',
+            'Optimize staff allocation'
           ]
         }
-      ]
-    },
-    {
-      title: 'Inventory Management',
-      icon: Package,
-      content: [
-        'Track stock levels and inventory movement',
-        'Set up low stock alerts',
-        'Monitor product usage and wastage',
-        'Generate inventory reports',
-        'Manage stock transfers and adjustments'
       ]
     },
     {
@@ -81,7 +76,8 @@ const UserManual = () => {
             'Create new customer orders',
             'Add products and customizations',
             'Apply discounts and promotions',
-            'Calculate total amount'
+            'Calculate total amount',
+            'Process payments and generate receipts'
           ]
         },
         {
@@ -90,31 +86,82 @@ const UserManual = () => {
             'View and manage ongoing orders',
             'Track order status and progress',
             'Handle order modifications',
-            'Process order completion'
+            'Process order completion',
+            'Manage order priorities'
           ]
         }
       ]
     },
     {
-      title: 'Payment Processing',
+      title: 'Inventory Management',
+      icon: Package,
+      content: [
+        'Track stock levels in real-time',
+        'Set up low stock alerts and thresholds',
+        'Monitor product usage and wastage',
+        'Generate inventory reports',
+        'Manage stock transfers and adjustments',
+        'Track product expiration dates',
+        'Analyze inventory turnover rates'
+      ]
+    },
+    {
+      title: 'Promotions and Discounts',
+      icon: Tag,
+      subsections: [
+        {
+          title: 'Create Promotion',
+          content: [
+            'Create new promotional campaigns',
+            'Set discount rates and conditions',
+            'Define promotion duration',
+            'Target specific products or categories',
+            'Set up seasonal promotions'
+          ]
+        },
+        {
+          title: 'Discount Application',
+          content: [
+            'Apply discounts to orders',
+            'Manage special pricing rules',
+            'Handle coupon codes',
+            'Process bulk discounts'
+          ]
+        },
+        {
+          title: 'Loyalty Program',
+          content: [
+            'Manage customer loyalty points',
+            'Set up reward tiers',
+            'Track customer rewards',
+            'Process point redemption',
+            'Analyze program effectiveness'
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Payment Management',
       icon: CreditCard,
       subsections: [
         {
-          title: 'Payment Methods',
+          title: 'Payment Processing',
           content: [
-            'Process cash payments',
-            'Handle card transactions',
-            'Manage digital payments',
-            'Issue receipts and invoices'
+            'Process various payment methods',
+            'Handle cash transactions',
+            'Manage card payments',
+            'Generate receipts',
+            'Process refunds'
           ]
         },
         {
           title: 'Financial Reconciliation',
           content: [
             'Balance daily transactions',
-            'Handle cash counts',
-            'Manage discrepancies',
-            'Generate financial reports'
+            'Manage cash counts',
+            'Handle discrepancies',
+            'Generate financial reports',
+            'Track payment history'
           ]
         }
       ]
@@ -124,21 +171,66 @@ const UserManual = () => {
       icon: Truck,
       subsections: [
         {
-          title: 'Supplier Records',
+          title: 'Add Supplier',
           content: [
-            'Add and manage supplier information',
-            'Track supplier performance',
-            'Manage supplier contracts',
-            'Update supplier details'
+            'Register new suppliers',
+            'Manage supplier information',
+            'Set payment terms',
+            'Define delivery methods',
+            'Track supplier performance'
           ]
         },
         {
-          title: 'Order Management',
+          title: 'Manage Suppliers',
           content: [
-            'Create purchase orders',
-            'Track deliveries and receipts',
-            'Manage supplier invoices',
-            'Handle returns and refunds'
+            'Update supplier details',
+            'Track supplier history',
+            'Manage supplier contracts',
+            'Rate supplier performance',
+            'Handle supplier communications'
+          ]
+        },
+        {
+          title: 'Order History',
+          content: [
+            'View purchase history',
+            'Track deliveries',
+            'Manage invoices',
+            'Monitor order status',
+            'Analyze supplier reliability'
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Maintenance',
+      icon: Settings,
+      subsections: [
+        {
+          title: 'Update Records',
+          content: [
+            'Update system records',
+            'Manage data accuracy',
+            'Clean up obsolete data',
+            'Verify data integrity'
+          ]
+        },
+        {
+          title: 'Archive',
+          content: [
+            'Archive old records',
+            'Manage archived data',
+            'Restore archived items',
+            'Maintain data history'
+          ]
+        },
+        {
+          title: 'Backup',
+          content: [
+            'Create system backups',
+            'Schedule automatic backups',
+            'Restore from backups',
+            'Manage backup storage'
           ]
         }
       ]
@@ -146,14 +238,76 @@ const UserManual = () => {
     {
       title: 'Reports',
       icon: BarChart2,
-      content: [
-        'Generate sales reports',
-        'View inventory analytics',
-        'Track employee performance',
-        'Monitor financial metrics',
-        'Export data in multiple formats'
+      subsections: [
+        {
+          title: 'Sales Reports',
+          content: [
+            'Generate sales analytics',
+            'View revenue trends', 
+            'Analyze sales performance',
+            'Export reports in multiple formats',
+            'Track daily/monthly/yearly sales',
+            'Monitor sales by category'
+          ]
+        },
+        {
+          title: 'Product Reports',
+          content: [
+            'Analyze product performance and popularity',
+            'Track product sales trends',
+            'Monitor product categories',
+            'View average product prices',
+            'Export in PDF/Excel/CSV formats',
+            'Access detailed product analytics'
+          ]
+        },
+        {
+          title: 'Service Reports',
+          content: [
+            'Track service efficiency metrics',
+            'Monitor customer satisfaction ratings',
+            'Analyze service preparation times',
+            'View peak service hours',
+            'Track order status and completion',
+            'Export service performance data'
+          ]
+        },
+        {
+          title: 'User Logs',
+          content: [
+            'Monitor user activities',
+            'Track system access and usage',
+            'View activity by module',
+            'Analyze peak usage times',
+            'Export detailed user logs',
+            'Monitor IP addresses and access points'
+          ]
+        },
+        {
+          title: 'Inventory Reports',
+          content: [
+            'Track stock movements',
+            'Monitor product performance',
+            'Analyze stock turnover',
+            'Identify slow-moving items',
+            'View inventory valuations',
+            'Generate stock alerts'
+          ]
+        },
+        {
+          title: 'Financial Summary',
+          content: [
+            'Generate profit/loss statements',
+            'View financial summaries',
+            'Track expenses and revenues',
+            'Analyze financial trends',
+            'Monitor cash flow',
+            'Export financial reports'
+          ]
+        }
       ]
     }
+    
   ];
 
   return (
@@ -168,7 +322,7 @@ const UserManual = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">Introduction</h3>
         <p className="text-gray-600 leading-relaxed">
-          Welcome to the Jazz Coffee Management System user manual. This guide provides detailed information about all system features and functionalities. Each section contains step-by-step instructions to help you effectively manage your coffee shop operations.
+          Welcome to the Jazz Coffee Management System user manual. This comprehensive guide provides detailed information about all system features and functionalities. Each section contains step-by-step instructions to help you effectively manage your coffee shop operations.
         </p>
       </div>
 

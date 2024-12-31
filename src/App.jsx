@@ -45,14 +45,14 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
       <Route path="/reset-password" element={<ResetPasswordScreen />} />
       <Route path="/dashboard/*" element={<StoreManagementSystem />}>
-      <Route path="registration" element={<RegistrationModule />} />
+        <Route path="registration" element={<RegistrationModule />} />
         <Route path="registration/employee" element={<EmployeeRegistration />} />
         <Route path="registration/product" element={<ProductRegistration />} />
         <Route path="employee" element={<ModuleContent moduleId="employee" />} />
         <Route path="employee/records" element={<EmployeeRecords />} />
         <Route path="employee/time-tracking" element={<TimeTracking />} />
         <Route path="employee/scheduling" element={<Scheduling />} />
-        <Route path="help/user-manual" element={<UserManual />} />
+        <Route path="help" element={<UserManual />} /> {/* Changed this line */}
         <Route path="about/system" element={<AboutSystem />} />
         <Route path="about/developers" element={<AboutDevelopers />} />
         <Route path="maintenance/update-records" element={<UpdateRecords />} />
@@ -78,7 +78,6 @@ function App() {
         <Route path="reports/user-logs" element={<UserLogs />} />
         <Route path="reports/inventory" element={<InventoryReport />} />
         <Route path="reports/financial" element={<FinancialSummary />} />
-        <Route path="help" element={<ModuleContent moduleId="help" />} />
       </Route>
     </Routes>
   );
