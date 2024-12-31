@@ -15,6 +15,16 @@ const EMPLOYEE_MODULES = [
   'about'
 ];
 
+// Define default routes for modules with children
+const DEFAULT_ROUTES = {
+  employee: '/dashboard/employee/records',
+  order: '/dashboard/order/new',
+  promotions: '/dashboard/promotions/create',
+  supplier: '/dashboard/supplier/add',
+  maintenance: '/dashboard/maintenance/update-records',
+  about: '/dashboard/about/system'
+};
+
 export default function StoreManagementSystem() {
   const [openModules, setOpenModules] = useState({});
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -45,7 +55,12 @@ export default function StoreManagementSystem() {
     
     if (moduleId !== activeModule) {
       setActiveModule(moduleId);
-      navigate(`/dashboard/${moduleId}`);
+      // Navigate to default route if module has one
+      if (DEFAULT_ROUTES[moduleId]) {
+        navigate(DEFAULT_ROUTES[moduleId]);
+      } else {
+        navigate(`/dashboard/${moduleId}`);
+      }
     }
   };
 

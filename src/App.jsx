@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
@@ -49,12 +49,12 @@ function App() {
         <Route path="registration" element={<RegistrationModule />} />
         <Route path="registration/employee" element={<EmployeeRegistration />} />
         <Route path="registration/product" element={<ProductRegistration />} />
-        <Route path="employee" element={<ModuleContent moduleId="employee" />} />
+        <Route path="employee" element={<Navigate to="/dashboard/employee/records" replace />} />
         <Route path="employee/records" element={<EmployeeRecords />} />
         <Route path="employee/time-tracking" element={<TimeTracking />} />
         <Route path="employee/scheduling" element={<Scheduling />} />
         
-        <Route path="help" element={<UserManual />} /> {/* Changed this line */}
+        <Route path="help" element={<UserManual />} />
         <Route path="about/system" element={<AboutSystem />} />
         <Route path="about/developers" element={<AboutDevelopers />} />
         <Route path="maintenance/update-records" element={<UpdateRecords />} />
