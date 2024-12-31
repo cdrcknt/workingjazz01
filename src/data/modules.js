@@ -9,10 +9,8 @@ export const modules = [
     id: 'registration',
     icon: UserPlus,
     label: 'Registration',
-    children: [
-      { label: 'Employee Registration', path: '/registration/employee' },
-      { label: 'Product Registration', path: '/registration/product' }
-    ]
+    path: '/registration',
+    component: 'ModuleContent'
   },
   {
     id: 'employee',

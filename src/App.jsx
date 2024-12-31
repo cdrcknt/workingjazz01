@@ -8,6 +8,7 @@ import StoreManagementSystem from './components/StoreManagementSystem';
 import ModuleContent from './modules/ModuleContent';
 import EmployeeRegistration from './components/modules/registration/EmployeeRegistration';
 import ProductRegistration from './components/modules/registration/ProductRegistration';
+import RegistrationModule from './components/modules/registration/RegistrationModule';
 import EmployeeRecords from './components/modules/employee/EmployeeRecords';
 import TimeTracking from './components/modules/employee/TimeTracking';
 import Scheduling from './components/modules/employee/Scheduling';
@@ -44,7 +45,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
       <Route path="/reset-password" element={<ResetPasswordScreen />} />
       <Route path="/dashboard/*" element={<StoreManagementSystem />}>
-        <Route path="registration" element={<ModuleContent moduleId="registration" />} />
+      <Route path="registration" element={<RegistrationModule />} />
         <Route path="registration/employee" element={<EmployeeRegistration />} />
         <Route path="registration/product" element={<ProductRegistration />} />
         <Route path="employee" element={<ModuleContent moduleId="employee" />} />
