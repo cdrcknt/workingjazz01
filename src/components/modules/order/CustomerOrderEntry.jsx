@@ -1,13 +1,12 @@
-//Current Code
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../utils/supabaseClient';
-import { Plus, Minus, Coffee, Trash2, Edit2, Save } from 'lucide-react';
+import { Coffee, Plus, Minus, Trash2 } from 'lucide-react';
 
 const CustomerOrderEntry = () => {
   const [products, setProducts] = useState([]);
   const [customizations, setCustomizations] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -20,13 +19,14 @@ const CustomerOrderEntry = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_active', true)
         .order('name');
 
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +51,7 @@ const CustomerOrderEntry = () => {
       {
         id: Date.now(),
         product_id: product.id,
-        product_name: product.name,
+        product: product,
         quantity: 1,
         unit_price: product.price,
         customizations: [],
@@ -127,8 +127,9 @@ const CustomerOrderEntry = () => {
         .insert([{
           order_number: orderNumber,
           total_amount: calculateTotal(),
-          created_by: userData.user.id,
-          status: 'pending'
+          total_items: selectedItems.reduce((sum, item) => sum + item.quantity, 0),
+          status: 'pending',
+          created_by: userData.user.id
         }])
         .select()
         .single();
@@ -170,6 +171,17 @@ const CustomerOrderEntry = () => {
 
       await Promise.all(orderItemPromises);
 
+      // Create initial status history
+      const { error: historyError } = await supabase
+        .from('order_status_history')
+        .insert([{
+          order_id: orderData.id,
+          new_status: 'pending',
+          changed_by: userData.user.id
+        }]);
+
+      if (historyError) throw historyError;
+
       setMessage({ type: 'success', text: `Order #${orderNumber} created successfully` });
       setSelectedItems([]);
     } catch (error) {
@@ -191,24 +203,31 @@ const CustomerOrderEntry = () => {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Available Items</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {products.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => addItem(product)}
-                  className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="p-2 bg-orange-100 rounded-lg mr-3">
-                    <Coffee className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h5 className="font-medium text-gray-900">{product.name}</h5>
-                    <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-                  </div>
-                  <Plus className="w-5 h-5 text-gray-400" />
-                </button>
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading products...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {products.map((product) => (
+                  <button
+                    key={product.id}
+                    onClick={() => addItem(product)}
+                    className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="p-2 bg-orange-100 rounded-lg mr-3">
+                      <Coffee className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h5 className="font-medium text-gray-900">{product.name}</h5>
+                      <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
+                    </div>
+                    <Plus className="w-5 h-5 text-gray-400" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -224,7 +243,7 @@ const CustomerOrderEntry = () => {
                 {selectedItems.map((item) => (
                   <div key={item.id} className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h5 className="font-medium text-gray-900">{item.product_name}</h5>
+                      <h5 className="font-medium text-gray-900">{item.product.name}</h5>
                       <button
                         onClick={() => removeItem(item.id)}
                         className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
