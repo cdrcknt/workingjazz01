@@ -78,6 +78,7 @@ function App() {
         <Route path="reports/user-logs" element={<UserLogs />} />
         <Route path="reports/inventory" element={<InventoryReport />} />
         <Route path="reports/financial" element={<FinancialSummary />} />
+        <Route path="help" element={<ModuleContent moduleId="help" />} />
       </Route>
     </Routes>
   );

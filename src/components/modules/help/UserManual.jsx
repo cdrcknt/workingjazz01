@@ -1,87 +1,233 @@
 import React from 'react';
-import { Book, Coffee, Users, Package, Clock, Calendar, DollarSign, Settings } from 'lucide-react';
+import { 
+  Coffee, Users, Package, Clock, Calendar, DollarSign, 
+  Tag, ShoppingBag, Truck, BarChart2, Settings, CreditCard
+} from 'lucide-react';
 
 const UserManual = () => {
   const sections = [
     {
-      title: 'Getting Started',
+      title: 'Dashboard',
       icon: Coffee,
       content: [
-        'Login to your account using your credentials',
-        'Navigate through modules using the sidebar',
-        'Each module has specific functionalities for managing the coffee shop'
+        'View key metrics and statistics',
+        'Monitor daily sales and revenue',
+        'Track active staff and inventory status',
+        'Access quick actions for common tasks',
+        'View recent orders and their status'
+      ]
+    },
+    {
+      title: 'Registration',
+      icon: Users,
+      content: [
+        'Register new employees with complete information',
+        'Add new products to the system',
+        'Set product prices and categories',
+        'Manage product details and availability'
       ]
     },
     {
       title: 'Employee Management',
       icon: Users,
-      content: [
-        'Register new employees with complete information',
-        'View and edit employee records',
-        'Track attendance and work hours',
-        'Manage employee schedules and shifts'
+      subsections: [
+        {
+          title: 'Employee Records',
+          content: [
+            'View and manage employee information',
+            'Update employee details and roles',
+            'Track employee performance',
+            'Manage access permissions'
+          ]
+        },
+        {
+          title: 'Time Tracking',
+          content: [
+            'Record employee clock-in/out times',
+            'Monitor work hours and attendance',
+            'Generate timesheet reports',
+            'Track overtime and breaks'
+          ]
+        },
+        {
+          title: 'Scheduling',
+          content: [
+            'Create and manage employee schedules',
+            'Assign shifts and duties',
+            'Handle time-off requests',
+            'View schedule conflicts'
+          ]
+        }
       ]
     },
     {
-      title: 'Product Management',
+      title: 'Inventory Management',
       icon: Package,
       content: [
-        'Add new products to the inventory',
-        'Categorize products (Coffee, Milktea, etc.)',
-        'Set and update product prices',
-        'Monitor stock levels'
+        'Track stock levels and inventory movement',
+        'Set up low stock alerts',
+        'Monitor product usage and wastage',
+        'Generate inventory reports',
+        'Manage stock transfers and adjustments'
       ]
     },
     {
-      title: 'Time Tracking',
-      icon: Clock,
-      content: [
-        'Record employee clock-in/out times',
-        'View attendance history',
-        'Monitor work hours',
-        'Generate time reports'
+      title: 'Order Management',
+      icon: ShoppingBag,
+      subsections: [
+        {
+          title: 'New Order',
+          content: [
+            'Create new customer orders',
+            'Add products and customizations',
+            'Apply discounts and promotions',
+            'Calculate total amount'
+          ]
+        },
+        {
+          title: 'Order Queue',
+          content: [
+            'View and manage ongoing orders',
+            'Track order status and progress',
+            'Handle order modifications',
+            'Process order completion'
+          ]
+        }
       ]
     },
     {
-      title: 'Scheduling',
-      icon: Calendar,
+      title: 'Payment Processing',
+      icon: CreditCard,
+      subsections: [
+        {
+          title: 'Payment Methods',
+          content: [
+            'Process cash payments',
+            'Handle card transactions',
+            'Manage digital payments',
+            'Issue receipts and invoices'
+          ]
+        },
+        {
+          title: 'Financial Reconciliation',
+          content: [
+            'Balance daily transactions',
+            'Handle cash counts',
+            'Manage discrepancies',
+            'Generate financial reports'
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Supplier Management',
+      icon: Truck,
+      subsections: [
+        {
+          title: 'Supplier Records',
+          content: [
+            'Add and manage supplier information',
+            'Track supplier performance',
+            'Manage supplier contracts',
+            'Update supplier details'
+          ]
+        },
+        {
+          title: 'Order Management',
+          content: [
+            'Create purchase orders',
+            'Track deliveries and receipts',
+            'Manage supplier invoices',
+            'Handle returns and refunds'
+          ]
+        }
+      ]
+    },
+    {
+      title: 'Reports',
+      icon: BarChart2,
       content: [
-        'Create employee work schedules',
-        'Assign shifts and duties',
-        'Manage time-off requests',
-        'View schedule overview'
+        'Generate sales reports',
+        'View inventory analytics',
+        'Track employee performance',
+        'Monitor financial metrics',
+        'Export data in multiple formats'
       ]
     }
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-sky-50 to-sky-100 rounded-xl p-6 mb-6">
-        <h3 className="text-xl font-semibold text-sky-800 mb-2">User Manual</h3>
-        <p className="text-sky-600">Learn how to use the Jazz Coffee Management System</p>
+    <div className="space-y-8 max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl p-8 text-white">
+        <h2 className="text-3xl font-bold mb-4">Jazz Coffee Management System</h2>
+        <p className="text-blue-100 text-lg">Comprehensive User Guide</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
+      {/* Introduction */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Introduction</h3>
+        <p className="text-gray-600 leading-relaxed">
+          Welcome to the Jazz Coffee Management System user manual. This guide provides detailed information about all system features and functionalities. Each section contains step-by-step instructions to help you effectively manage your coffee shop operations.
+        </p>
+      </div>
+
+      {/* Sections */}
+      <div className="space-y-6">
         {sections.map((section, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 bg-sky-50 rounded-lg">
-                <section.icon className="w-6 h-6 text-sky-600" />
+          <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white rounded-xl shadow-sm">
+                  <section.icon className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
               </div>
-              <div className="flex-1">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3">{section.title}</h4>
+            </div>
+            
+            <div className="p-6">
+              {section.subsections ? (
+                <div className="space-y-6">
+                  {section.subsections.map((subsection, subIndex) => (
+                    <div key={subIndex} className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3">{subsection.title}</h4>
+                      <ul className="space-y-2">
+                        {subsection.content.map((item, itemIndex) => (
+                          <li key={itemIndex} className="flex items-start space-x-2 text-gray-600">
+                            <span className="w-2 h-2 bg-blue-400 rounded-full mt-2"></span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <ul className="space-y-2">
-                  {section.content.map((item, i) => (
-                    <li key={i} className="flex items-center text-gray-600">
-                      <span className="w-2 h-2 bg-sky-400 rounded-full mr-2"></span>
-                      {item}
+                  {section.content.map((item, itemIndex) => (
+                    <li key={itemIndex} className="flex items-start space-x-2 text-gray-600">
+                      <span className="w-2 h-2 bg-blue-400 rounded-full mt-2"></span>
+                      <span>{item}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              )}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Support Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Need Help?</h3>
+        <p className="text-gray-600 leading-relaxed">
+          If you need additional assistance or have questions not covered in this manual, please contact our support team:
+        </p>
+        <div className="mt-4 space-y-2 text-gray-600">
+          <p>Email: support@jazzcoffee.com</p>
+          <p>Phone: (123) 456-7890</p>
+          <p>Hours: Monday - Friday, 9:00 AM - 5:00 PM</p>
+        </div>
       </div>
     </div>
   );

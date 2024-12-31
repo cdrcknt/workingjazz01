@@ -88,9 +88,8 @@ export const modules = [
     id: 'help',
     icon: HelpCircle,
     label: 'Help',
-    children: [
-      { label: 'User Manual', path: '/help/user-manual' }
-    ]
+    path: '/help/user-manual',
+    component: 'UserManual'
   },
   {
     id: 'about',
