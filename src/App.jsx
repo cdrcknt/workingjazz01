@@ -6,6 +6,9 @@ import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import StoreManagementSystem from './components/StoreManagementSystem';
 import ModuleContent from './modules/ModuleContent';
+import CustomerOrderEntry from './components/modules/order/CustomerOrderEntry';
+import OrderQueue from './components/modules/order/OrderQueue';
+import OrderHistory from './components/modules/order/OrderHistory';
 import EmployeeRegistration from './components/modules/registration/EmployeeRegistration';
 import ProductRegistration from './components/modules/registration/ProductRegistration';
 import RegistrationModule from './components/modules/registration/RegistrationModule';
@@ -20,13 +23,11 @@ import Archive from './components/modules/maintenance/Archive';
 import Backup from './components/modules/maintenance/Backup';
 import AddSupplier from './components/modules/supplier/AddSupplier';
 import ManageSuppliers from './components/modules/supplier/ManageSuppliers';
-import OrderHistory from './components/modules/supplier/OrderHistory';
+import SupplierOrderHistory from './components/modules/supplier/OrderHistory';
 import CreatePromotion from './components/modules/promotions/CreatePromotion';
 import DiscountApplication from './components/modules/promotions/DiscountApplication';
 import LoyaltyProgram from './components/modules/promotions/LoyaltyProgram';
 import ActivePromotions from './components/modules/promotions/ActivePromotions';
-import CustomerOrderEntry from './components/modules/order/CustomerOrderEntry';
-import OrderQueue from './components/modules/order/OrderQueue';
 import InventoryDashboard from './components/modules/inventory/InventoryDashboard';
 import PaymentModule from './components/modules/payment/PaymentModule';
 import ReportsModule from './components/modules/reports/ReportsModule';
@@ -52,6 +53,7 @@ function App() {
         <Route path="employee/records" element={<EmployeeRecords />} />
         <Route path="employee/time-tracking" element={<TimeTracking />} />
         <Route path="employee/scheduling" element={<Scheduling />} />
+        
         <Route path="help" element={<UserManual />} /> {/* Changed this line */}
         <Route path="about/system" element={<AboutSystem />} />
         <Route path="about/developers" element={<AboutDevelopers />} />
@@ -60,7 +62,7 @@ function App() {
         <Route path="maintenance/backup" element={<Backup />} />
         <Route path="supplier/add" element={<AddSupplier />} />
         <Route path="supplier/manage" element={<ManageSuppliers />} />
-        <Route path="supplier/history" element={<OrderHistory />} />
+        <Route path="supplier/history" element={<SupplierOrderHistory />} />
         <Route path="promotions" element={<ModuleContent moduleId="promotions" />} />
         <Route path="promotions/create" element={<CreatePromotion />} />
         <Route path="promotions/discounts" element={<DiscountApplication />} />
@@ -69,6 +71,7 @@ function App() {
         <Route path="order" element={<ModuleContent moduleId="order" />} />
         <Route path="order/new" element={<CustomerOrderEntry />} />
         <Route path="order/queue" element={<OrderQueue />} />
+        <Route path="order/history" element={<OrderHistory />} />
         <Route path="inventory" element={<InventoryDashboard />} />
         <Route path="payment/*" element={<PaymentModule />} />
         <Route path="reports" element={<ReportsModule />} />
