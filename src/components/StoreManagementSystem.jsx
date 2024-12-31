@@ -25,6 +25,9 @@ const DEFAULT_ROUTES = {
   about: '/dashboard/about/system'
 };
 
+// Define modules that have dropdowns
+const DROPDOWN_MODULES = ['employee', 'order', 'promotions', 'supplier', 'maintenance', 'about'];
+
 export default function StoreManagementSystem() {
   const [openModules, setOpenModules] = useState({});
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -48,10 +51,16 @@ export default function StoreManagementSystem() {
   };
 
   const toggleModule = (moduleId) => {
-    setOpenModules(prev => ({
-      ...prev,
-      [moduleId]: !prev[moduleId]
-    }));
+    // If clicking a module without dropdown, close all dropdowns
+    if (!DROPDOWN_MODULES.includes(moduleId)) {
+      setOpenModules({});
+    } else {
+      // If clicking a dropdown module, close others and toggle this one
+      setOpenModules(prev => ({
+        ...Object.fromEntries(DROPDOWN_MODULES.map(id => [id, false])), // Close all dropdowns
+        [moduleId]: !prev[moduleId] // Toggle clicked module
+      }));
+    }
     
     if (moduleId !== activeModule) {
       setActiveModule(moduleId);
@@ -65,7 +74,7 @@ export default function StoreManagementSystem() {
   };
 
   const handleDashboard = () => {
-    setOpenModules({});
+    setOpenModules({}); // Close all dropdowns
     setActiveModule('dashboard');
     navigate('/dashboard');
   };
